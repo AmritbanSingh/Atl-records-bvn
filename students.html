@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Students</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h2>Student Achievements</h2>
+    <input type="text" id="studentName" placeholder="Student Name" />
+    <textarea id="achievement" placeholder="Achievement..."></textarea>
+    <label for="studentPhoto">Upload Student Photo:</label>
+    <input type="file" id="studentPhoto" accept="image/*" title="Choose a photo of the student" />
+    <button onclick="addStudent()">Add</button>
+    <button onclick="window.location.href='home.html'">Back to Home page</button>
+
+    <div id="studentList"></div>
+  </div>
+  <script>
+    const studentList = document.getElementById("studentList");
+    let savedStudents = JSON.parse(localStorage.getItem("students") || "[]");
+  
+    function renderStudents() {
+      studentList.innerHTML = "";
+      savedStudents.forEach((stu, i) => {
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `
+          ${stu.photo ? `<img src="${stu.photo}" width="100" />` : ""}
+          <h4>${stu.name}</h4>
+          <p>${stu.achievement}</p>
+          <button class="delete-btn" onclick="deleteStudent(${i})">❌ Delete</button>
+        `;
+        studentList.appendChild(div);
+      });
+    }
+  
+    function deleteStudent(index) {
+      const pwd = prompt("Enter password to delete:");
+      if (pwd === localStorage.getItem("password")) {
+        savedStudents.splice(index, 1);
+        localStorage.setItem("students", JSON.stringify(savedStudents));
+        renderStudents();
+      } else {
+        alert("Incorrect password!");
+      }
+    }
+  
+    function addStudent() {
+      const name = document.getElementById("studentName").value;
+      const achievement = document.getElementById("achievement").value;
+      const file = document.getElementById("studentPhoto").files[0];
+      const reader = new FileReader();
+  
+      reader.onload = function(e) {
+        savedStudents.push({ name, achievement, photo: e.target.result });
+        localStorage.setItem("students", JSON.stringify(savedStudents));
+        renderStudents();
+      };
+  
+      if (file) reader.readAsDataURL(file);
+      else {
+        savedStudents.push({ name, achievement, photo: null });
+        localStorage.setItem("students", JSON.stringify(savedStudents));
+        renderStudents();
+      }
+    }
+  
+    renderStudents();
+  </script>
+  
+</body>
+</html>

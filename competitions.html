@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Competitions</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h2>Competition Details</h2>
+    <input type="text" id="compTitle" placeholder="Competition Title" />
+    <textarea id="compDetails" placeholder="Details..."></textarea>
+    <label for="compPhoto">Upload Competition Photo:</label>
+    <input type="file" id="compPhoto" accept="image/*" title="Choose an image file for the competition photo" />
+    <button onclick="addCompetition()">Add</button>
+    <button onclick="window.location.href='home.html'">Back to home</button>
+
+    <div id="compList"></div>
+  </div>
+  <script>
+    const compList = document.getElementById("compList");
+    let savedComps = JSON.parse(localStorage.getItem("competitions") || "[]");
+  
+    function renderComps() {
+      compList.innerHTML = "";
+      savedComps.forEach((comp, i) => {
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `
+          ${comp.photo ? `<img src="${comp.photo}" width="100" />` : ""}
+          <h4>${comp.title}</h4>
+          <p>${comp.details}</p>
+          <button class="delete-btn" onclick="deleteCompetition(${i})">❌ Delete</button>
+        `;
+        compList.appendChild(div);
+      });
+    }
+  
+    function deleteCompetition(index) {
+      const pwd = prompt("Enter password to delete:");
+      if (pwd === localStorage.getItem("password")) {
+        savedComps.splice(index, 1);
+        localStorage.setItem("competitions", JSON.stringify(savedComps));
+        renderComps();
+      } else {
+        alert("Incorrect password!");
+      }
+    }
+  
+    function addCompetition() {
+      const title = document.getElementById("compTitle").value;
+      const details = document.getElementById("compDetails").value;
+      const file = document.getElementById("compPhoto").files[0];
+      const reader = new FileReader();
+  
+      reader.onload = function(e) {
+        savedComps.push({ title, details, photo: e.target.result });
+        localStorage.setItem("competitions", JSON.stringify(savedComps));
+        renderComps();
+      };
+  
+      if (file) reader.readAsDataURL(file);
+      else {
+        savedComps.push({ title, details, photo: null });
+        localStorage.setItem("competitions", JSON.stringify(savedComps));
+        renderComps();
+      }
+    }
+  
+    renderComps();
+  </script>
+  
+</body>
+</html>
