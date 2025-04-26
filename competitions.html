@@ -1,127 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Competitions</title>
-  <style>
-    body {
-      background-color: black;
-      color: white;
-      font-size: 18px;
-      font-weight: bold;
-      font-family: Arial;
-      padding: 20px;
-    }
-
-    .card {
-      background: #222;
-      padding: 15px;
-      margin-bottom: 15px;
-      border-radius: 10px;
-    }
-
-    .card img {
-      border-radius: 5px;
-      margin-right: 10px;
-      margin-bottom: 10px;
-    }
-
-    .delete-btn {
-      background: red;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    input, textarea {
-      margin: 5px 0;
-      padding: 6px;
-      border-radius: 5px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Competitions</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Link to external CSS -->
 </head>
 <body>
-  <h1>Competition Records</h1>
-  <input type="text" id="compTitle" placeholder="Competition Title"><br>
-  <textarea id="compDetails" placeholder="Details"></textarea><br>
-  <label for="compPhotos">Upload Competition Photos:</label>
-  <input type="file" id="compPhotos" accept="image/*" multiple title="Select competition photos"><br>
-  <button onclick="addCompetition()">Add Competition</button>
-  <a href="home.html"><button>🔙 Back</button></a>
+    <div class="container">
+        <h1>Competitions</h1>
+        <div id="compList"></div>
+        <button onclick="goBack()">Go Back</button>
+        <button onclick="addCompetition()">Add Competition</button>
+    </div>
 
-  <hr>
-  <div id="compList"></div>
-
-  <script>
-    const compList = document.getElementById("compList");
-    let savedComps = JSON.parse(localStorage.getItem("competitions") || "[]");
-
-    function renderComps() {
-      compList.innerHTML = "";
-      savedComps.forEach((comp, i) => {
-        const div = document.createElement("div");
-        div.className = "card";
-
-        let imgHTML = "";
-        if (comp.photos && comp.photos.length > 0) {
-          imgHTML = comp.photos.map(photo => `<img src="${photo}" width="100"/>`).join(" ");
+    <script src="script.js"></script> <!-- Link to external JS -->
+    <script>
+        // Initialize empty array for competitions if it doesn't exist in localStorage
+        if (!localStorage.getItem("competitions")) {
+            localStorage.setItem("competitions", JSON.stringify([]));
         }
 
-        div.innerHTML = `
-          ${imgHTML}
-          <h4>${comp.title}</h4>
-          <p>${comp.details}</p>
-          <button class="delete-btn" onclick="deleteCompetition(${i})">❌ Delete</button>
-        `;
-        compList.appendChild(div);
-      });
-    }
+        function renderCompetitions() {
+            const compList = document.getElementById("compList");
+            const competitions = JSON.parse(localStorage.getItem("competitions"));
+            compList.innerHTML = "";
+            competitions.forEach((comp, index) => {
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.innerHTML = `
+                    <h3>${comp.title}</h3>
+                    <p>${comp.details}</p>
+                    <button class="edit-btn" onclick="editCompetition(${index})">✏️ Edit</button>
+                    <button class="delete-btn" onclick="deleteCompetition(${index})">❌ Delete</button>
+                `;
+                compList.appendChild(div);
+            });
+        }
 
-    function deleteCompetition(index) {
-      const pwd = prompt("Enter password to delete:");
-      if (pwd === localStorage.getItem("password")) {
-        savedComps.splice(index, 1);
-        localStorage.setItem("competitions", JSON.stringify(savedComps));
-        renderComps();
-      } else {
-        alert("Incorrect password!");
-      }
-    }
+        function addCompetition() {
+            const title = prompt("Enter competition title:");
+            const details = prompt("Enter competition details:");
+            const competitions = JSON.parse(localStorage.getItem("competitions"));
+            competitions.push({ title, details });
+            localStorage.setItem("competitions", JSON.stringify(competitions));
+            renderCompetitions();
+        }
 
-    function addCompetition() {
-      const title = document.getElementById("compTitle").value;
-      const details = document.getElementById("compDetails").value;
-      const files = document.getElementById("compPhotos").files;
+        function editCompetition(index) {
+            const competitions = JSON.parse(localStorage.getItem("competitions"));
+            const newTitle = prompt("Edit Title:", competitions[index].title);
+            const newDetails = prompt("Edit Details:", competitions[index].details);
+            if (newTitle && newDetails) {
+                competitions[index].title = newTitle;
+                competitions[index].details = newDetails;
+                localStorage.setItem("competitions", JSON.stringify(competitions));
+                renderCompetitions();
+            }
+        }
 
-      const photoList = [];
-      let loaded = 0;
+        function deleteCompetition(index) {
+            const password = prompt("Enter delete password:");
+            if (password === "atlbvn@2025") {
+                const competitions = JSON.parse(localStorage.getItem("competitions"));
+                competitions.splice(index, 1);
+                localStorage.setItem("competitions", JSON.stringify(competitions));
+                renderCompetitions();
+            } else {
+                alert("Incorrect password!");
+            }
+        }
 
-      if (files.length === 0) {
-        savedComps.push({ title, details, photos: [] });
-        localStorage.setItem("competitions", JSON.stringify(savedComps));
-        renderComps();
-        return;
-      }
+        function goBack() {
+            window.history.back();
+        }
 
-      for (let file of files) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          photoList.push(e.target.result);
-          loaded++;
-          if (loaded === files.length) {
-            savedComps.push({ title, details, photos: photoList });
-            localStorage.setItem("competitions", JSON.stringify(savedComps));
-            renderComps();
-          }
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-
-    renderComps();
-  </script>
+        // Call the function to render competitions initially
+        renderCompetitions();
+    </script>
 </body>
 </html>
